@@ -22,6 +22,10 @@ services:
       # - WHATSAPP_WEBHOOK=https://your-webhook.com/webhook
       # - WHATSAPP_AUTO_REPLY=Mensagem automática
       # - WHATSAPP_AUTO_MARK_READ=true
+      # Media cleanup (uncomment to enable)
+      # - MEDIA_CLEANUP_ENABLED=true
+      # - MEDIA_CLEANUP_RETENTION_DAYS=30
+      # - MEDIA_CLEANUP_INTERVAL_HOURS=24
     command:
       - rest
       # Ou use 'mcp' para modo MCP Server

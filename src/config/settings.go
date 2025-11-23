@@ -22,6 +22,11 @@ var (
 	PathMedia     = "statics/media"
 	PathStorages  = "storages"
 
+	// Media cleanup configuration
+	MediaCleanupEnabled       = false // Enable automatic media cleanup
+	MediaCleanupRetentionDays = 7     // Number of days to keep media files (0 = disabled)
+	MediaCleanupIntervalHours = 24    // How often to run cleanup (in hours)
+
 	DBURI     = "file:storages/whatsapp.db?_foreign_keys=on"
 	DBKeysURI = ""
 

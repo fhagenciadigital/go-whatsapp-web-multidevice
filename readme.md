@@ -125,6 +125,9 @@ To use environment variables:
 | `WHATSAPP_WEBHOOK`            | Webhook URL(s) for events (comma-separated) | -                                            | `WHATSAPP_WEBHOOK=https://webhook.site/xxx` |
 | `WHATSAPP_WEBHOOK_SECRET`     | Webhook secret for validation               | `secret`                                     | `WHATSAPP_WEBHOOK_SECRET=super-secret-key`  |
 | `WHATSAPP_ACCOUNT_VALIDATION` | Enable account validation                   | `true`                                       | `WHATSAPP_ACCOUNT_VALIDATION=false`         |
+| `MEDIA_CLEANUP_ENABLED`       | Enable automatic media cleanup              | `false`                                      | `MEDIA_CLEANUP_ENABLED=true`                |
+| `MEDIA_CLEANUP_RETENTION_DAYS`| Days to keep media files (0=disabled)       | `7`                                          | `MEDIA_CLEANUP_RETENTION_DAYS=30`           |
+| `MEDIA_CLEANUP_INTERVAL_HOURS`| Hours between cleanup runs                  | `24`                                         | `MEDIA_CLEANUP_INTERVAL_HOURS=12`           |
 
 Note: Command-line flags will override any values set in environment variables or `.env` file.
 

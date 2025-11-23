@@ -127,6 +127,17 @@ func initEnvConfig() {
 	if viper.IsSet("whatsapp_account_validation") {
 		config.WhatsappAccountValidation = viper.GetBool("whatsapp_account_validation")
 	}
+
+	// Media cleanup settings
+	if viper.IsSet("media_cleanup_enabled") {
+		config.MediaCleanupEnabled = viper.GetBool("media_cleanup_enabled")
+	}
+	if envRetentionDays := viper.GetInt("media_cleanup_retention_days"); envRetentionDays > 0 {
+		config.MediaCleanupRetentionDays = envRetentionDays
+	}
+	if envIntervalHours := viper.GetInt("media_cleanup_interval_hours"); envIntervalHours > 0 {
+		config.MediaCleanupIntervalHours = envIntervalHours
+	}
 }
 
 func initFlags() {
@@ -220,6 +231,26 @@ func initFlags() {
 		config.WhatsappAccountValidation,
 		`enable or disable account validation --account-validation <true/false> | example: --account-validation=true`,
 	)
+
+	// Media cleanup flags
+	rootCmd.PersistentFlags().BoolVarP(
+		&config.MediaCleanupEnabled,
+		"media-cleanup-enabled", "",
+		config.MediaCleanupEnabled,
+		`enable automatic media cleanup --media-cleanup-enabled <true/false> | example: --media-cleanup-enabled=true`,
+	)
+	rootCmd.PersistentFlags().IntVarP(
+		&config.MediaCleanupRetentionDays,
+		"media-cleanup-retention-days", "",
+		config.MediaCleanupRetentionDays,
+		`number of days to keep media files --media-cleanup-retention-days <number> | example: --media-cleanup-retention-days=30`,
+	)
+	rootCmd.PersistentFlags().IntVarP(
+		&config.MediaCleanupIntervalHours,
+		"media-cleanup-interval-hours", "",
+		config.MediaCleanupIntervalHours,
+		`how often to run cleanup in hours --media-cleanup-interval-hours <number> | example: --media-cleanup-interval-hours=12`,
+	)
 }
 
 func initChatStorage() (*sql.DB, error) {
@@ -285,6 +316,11 @@ func initApp() {
 	messageUsecase = usecase.NewMessageService(chatStorageRepo)
 	groupUsecase = usecase.NewGroupService()
 	newsletterUsecase = usecase.NewNewsletterService()
+
+	// Start media cleanup scheduler if enabled
+	if config.MediaCleanupEnabled && config.MediaCleanupRetentionDays > 0 {
+		utils.StartMediaCleanupScheduler(config.MediaCleanupRetentionDays, config.MediaCleanupIntervalHours)
+	}
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
