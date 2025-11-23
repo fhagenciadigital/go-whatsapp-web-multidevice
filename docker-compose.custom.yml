@@ -1,0 +1,37 @@
+# Docker Compose para usar imagem personalizada do Docker Hub
+# 
+# Imagem publicada em: https://hub.docker.com/r/fhagenciadigital/go-whatsapp-web-multidevice
+# 
+# Uso:
+#   docker-compose -f docker-compose.custom.yml up -d
+
+services:
+  whatsapp:
+    image: fhagenciadigital/go-whatsapp-web-multidevice:latest
+    container_name: whatsapp-custom
+    restart: always
+    ports:
+      - "3000:3000"
+    volumes:
+      - whatsapp-data:/app/storages
+    environment:
+      - APP_PORT=3000
+      - APP_DEBUG=true
+      - APP_OS=Chrome
+      # - APP_BASIC_AUTH=admin:admin
+      # - WHATSAPP_WEBHOOK=https://your-webhook.com/webhook
+      # - WHATSAPP_AUTO_REPLY=Mensagem automática
+      # - WHATSAPP_AUTO_MARK_READ=true
+    command:
+      - rest
+      # Ou use 'mcp' para modo MCP Server
+    networks:
+      - whatsapp-net
+
+volumes:
+  whatsapp-data:
+    driver: local
+
+networks:
+  whatsapp-net:
+    driver: bridge

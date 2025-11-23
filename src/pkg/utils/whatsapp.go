@@ -73,6 +73,20 @@ func determineMediaExtension(originalFilename, mimeType string) string {
 		}
 	}
 
+	// Handle specific audio MIME types
+	switch mimeType {
+	case "audio/ogg", "audio/ogg; codecs=opus":
+		return ".ogg"
+	case "audio/mpeg", "audio/mp3":
+		return ".mp3"
+	case "audio/mp4", "audio/aac":
+		return ".m4a"
+	case "audio/wav":
+		return ".wav"
+	case "audio/webm", "audio/webm; codecs=opus":
+		return ".webm"
+	}
+
 	if ext, ok := resolveKnownDocumentExtension(mimeType); ok {
 		return ext
 	}
@@ -275,9 +289,11 @@ func ExtractMediaInfo(msg *waE2E.Message) (mediaType string, filename string, ur
 
 	// Check for audio message
 	if aud := msg.GetAudioMessage(); aud != nil {
-		extension := "ogg"
-		if aud.GetPTT() {
-			extension = "ogg" // Voice notes are typically ogg
+		// Determine extension based on MIME type
+		mimeType := aud.GetMimetype()
+		extension := strings.TrimPrefix(determineMediaExtension("", mimeType), ".")
+		if extension == "" {
+			extension = "ogg" // Fallback to ogg
 		}
 		filename = GenerateMediaFilename("audio", extension, "")
 		return "audio", filename,

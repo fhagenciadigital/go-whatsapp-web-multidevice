@@ -1,0 +1,21 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: whatsapp-dev
+    volumes:
+      - ./src:/app
+      - go-mod-cache:/go/pkg/mod
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    networks:
+      - whatsapp-net
+
+volumes:
+  go-mod-cache:
+
+networks:
+  whatsapp-net:
+    driver: bridge

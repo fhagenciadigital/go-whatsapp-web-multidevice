@@ -39,6 +39,42 @@ func TestDetermineMediaExtension(t *testing.T) {
 			mimeType:   "application/octet-stream",
 			wantSuffix: ".exe",
 		},
+		{
+			name:       "OggAudio",
+			filename:   "",
+			mimeType:   "audio/ogg",
+			wantSuffix: ".ogg",
+		},
+		{
+			name:       "OggAudioWithCodec",
+			filename:   "",
+			mimeType:   "audio/ogg; codecs=opus",
+			wantSuffix: ".ogg",
+		},
+		{
+			name:       "Mp3Audio",
+			filename:   "",
+			mimeType:   "audio/mpeg",
+			wantSuffix: ".mp3",
+		},
+		{
+			name:       "M4aAudio",
+			filename:   "",
+			mimeType:   "audio/mp4",
+			wantSuffix: ".m4a",
+		},
+		{
+			name:       "WavAudio",
+			filename:   "",
+			mimeType:   "audio/wav",
+			wantSuffix: ".wav",
+		},
+		{
+			name:       "WebmAudio",
+			filename:   "",
+			mimeType:   "audio/webm; codecs=opus",
+			wantSuffix: ".webm",
+		},
 	}
 
 	for _, tt := range tests {
