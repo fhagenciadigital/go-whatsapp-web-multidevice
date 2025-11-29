@@ -355,38 +355,47 @@ func ValidateSendAudio(ctx context.Context, request domainSend.AudioRequest) err
 	// If Audio file is provided, validate file MIME
 	if request.Audio != nil {
 		availableMimes := map[string]bool{
-			"audio/aac":      true,
-			"audio/amr":      true,
-			"audio/flac":     true,
-			"audio/m4a":      true,
-			"audio/m4r":      true,
-			"audio/mp3":      true,
-			"audio/mpeg":     true,
-			"audio/ogg":      true,
-			"audio/wma":      true,
-			"audio/x-ms-wma": true,
-			"audio/wav":      true,
-			"audio/vnd.wav":  true,
-			"audio/vnd.wave": true,
-			"audio/wave":     true,
-			"audio/x-pn-wav": true,
-			"audio/x-wav":    true,
-		}
-		availableMimesStr := ""
-
-		// Sort MIME types for consistent error message order
-		mimeKeys := make([]string, 0, len(availableMimes))
-		for k := range availableMimes {
-			mimeKeys = append(mimeKeys, k)
-		}
-		sort.Strings(mimeKeys)
-
-		for _, k := range mimeKeys {
-			availableMimesStr += k + ","
+			"audio/aac":              true,
+			"audio/amr":              true,
+			"audio/flac":             true,
+			"audio/m4a":              true,
+			"audio/m4r":              true,
+			"audio/mp3":              true,
+			"audio/mpeg":             true,
+			"audio/ogg":              true,
+			"audio/wma":              true,
+			"audio/x-ms-wma":         true,
+			"audio/wav":              true,
+			"audio/vnd.wav":          true,
+			"audio/vnd.wave":         true,
+			"audio/wave":             true,
+			"audio/x-pn-wav":         true,
+			"audio/x-wav":            true,
+			"application/octet-stream": true, // Allow binary uploads (will be detected later)
 		}
 
-		if !availableMimes[request.Audio.Header.Get("Content-Type")] {
-			return pkgError.ValidationError(fmt.Sprintf("your audio type is not allowed. please use (%s)", availableMimesStr))
+		contentType := request.Audio.Header.Get("Content-Type")
+		
+		// If Content-Type is empty or application/octet-stream, skip MIME validation
+		// The actual MIME type will be detected from file content in the usecase layer
+		if contentType != "" && contentType != "application/octet-stream" {
+			if !availableMimes[contentType] {
+				availableMimesStr := ""
+				// Sort MIME types for consistent error message order
+				mimeKeys := make([]string, 0, len(availableMimes))
+				for k := range availableMimes {
+					if k != "application/octet-stream" {
+						mimeKeys = append(mimeKeys, k)
+					}
+				}
+				sort.Strings(mimeKeys)
+
+				for _, k := range mimeKeys {
+					availableMimesStr += k + ","
+				}
+				
+				return pkgError.ValidationError(fmt.Sprintf("your audio type '%s' is not allowed. please use (%s)", contentType, availableMimesStr))
+			}
 		}
 	}
 

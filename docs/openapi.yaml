@@ -556,6 +556,10 @@ paths:
                   type: string
                   example: https://example.com/audio.mp3
                   description: Audio URL to send
+                ptt:
+                  type: boolean
+                  example: true
+                  description: Send as voice note (PTT). Auto-detected for OGG files if not specified
                 is_forwarded:
                   type: boolean
                   example: false

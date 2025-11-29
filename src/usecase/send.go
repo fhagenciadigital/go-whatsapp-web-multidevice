@@ -771,8 +771,38 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 		audioMimeType = http.DetectContentType(audioBytes)
 	} else if request.Audio != nil {
 		audioBytes = helpers.MultipartFormFileHeaderToBytes(request.Audio)
-		audioMimeType = http.DetectContentType(audioBytes)
+		
+		// Detect MIME type from content
+		detectedMimeType := http.DetectContentType(audioBytes)
+		
+		// If detection fails or returns generic type, try to determine from filename
+		if detectedMimeType == "application/octet-stream" || detectedMimeType == "" {
+			audioMimeType = utils.DetectAudioMimeType(request.Audio.Filename, audioBytes)
+			logrus.Infof("Audio MIME type detected from filename/signature: %s (filename: %s, size: %d bytes)", 
+				audioMimeType, request.Audio.Filename, len(audioBytes))
+		} else {
+			audioMimeType = detectedMimeType
+			logrus.Infof("Audio MIME type detected from content: %s (filename: %s, size: %d bytes)", 
+				audioMimeType, request.Audio.Filename, len(audioBytes))
+		}
 	}
+	
+	// Validate we have audio content
+	if len(audioBytes) == 0 {
+		return response, pkgError.ValidationError("audio file is empty")
+	}
+
+	// Determine if this should be sent as PTT (voice note)
+	isPTT := false
+	if request.PTT != nil {
+		isPTT = *request.PTT
+	} else {
+		// Auto-detect: OGG files are typically voice notes
+		isPTT = (audioMimeType == "audio/ogg" || audioMimeType == "audio/ogg; codecs=opus" || 
+			audioMimeType == "application/ogg")
+	}
+	
+	logrus.Infof("Uploading audio to WhatsApp: MIME=%s, size=%d bytes, PTT=%v", audioMimeType, len(audioBytes), isPTT)
 
 	// upload to WhatsApp servers
 	audioUploaded, err := service.uploadMedia(ctx, whatsmeow.MediaAudio, audioBytes, dataWaRecipient)
@@ -790,6 +820,7 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 			FileSHA256:    audioUploaded.FileSHA256,
 			FileEncSHA256: audioUploaded.FileEncSHA256,
 			MediaKey:      audioUploaded.MediaKey,
+			PTT:           proto.Bool(isPTT),
 		},
 	}
 

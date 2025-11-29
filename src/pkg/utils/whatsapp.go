@@ -102,6 +102,67 @@ func determineMediaExtension(originalFilename, mimeType string) string {
 	return ""
 }
 
+// DetectAudioMimeType attempts to determine audio MIME type from filename and content
+func DetectAudioMimeType(filename string, audioBytes []byte) string {
+	// First try to detect from file extension
+	ext := strings.ToLower(filepath.Ext(filename))
+	switch ext {
+	case ".ogg":
+		return "audio/ogg"
+	case ".mp3":
+		return "audio/mpeg"
+	case ".m4a":
+		return "audio/mp4"
+	case ".aac":
+		return "audio/aac"
+	case ".wav":
+		return "audio/wav"
+	case ".flac":
+		return "audio/flac"
+	case ".amr":
+		return "audio/amr"
+	case ".wma":
+		return "audio/x-ms-wma"
+	case ".webm":
+		return "audio/webm"
+	}
+	
+	// Check file signature (magic bytes) for common audio formats
+	if len(audioBytes) >= 12 {
+		// OGG: "OggS"
+		if audioBytes[0] == 0x4F && audioBytes[1] == 0x67 && audioBytes[2] == 0x67 && audioBytes[3] == 0x53 {
+			return "audio/ogg"
+		}
+		// MP3: starts with ID3 or FF FB/FF F3/FF F2
+		if (audioBytes[0] == 0x49 && audioBytes[1] == 0x44 && audioBytes[2] == 0x33) ||
+			(audioBytes[0] == 0xFF && (audioBytes[1] == 0xFB || audioBytes[1] == 0xF3 || audioBytes[1] == 0xF2)) {
+			return "audio/mpeg"
+		}
+		// M4A/AAC: starts with ftyp
+		if len(audioBytes) >= 8 && audioBytes[4] == 0x66 && audioBytes[5] == 0x74 && 
+			audioBytes[6] == 0x79 && audioBytes[7] == 0x70 {
+			return "audio/mp4"
+		}
+		// WAV: "RIFF....WAVE"
+		if audioBytes[0] == 0x52 && audioBytes[1] == 0x49 && audioBytes[2] == 0x46 && audioBytes[3] == 0x46 &&
+			audioBytes[8] == 0x57 && audioBytes[9] == 0x41 && audioBytes[10] == 0x56 && audioBytes[11] == 0x45 {
+			return "audio/wav"
+		}
+		// FLAC: "fLaC"
+		if audioBytes[0] == 0x66 && audioBytes[1] == 0x4C && audioBytes[2] == 0x61 && audioBytes[3] == 0x43 {
+			return "audio/flac"
+		}
+		// AMR: "#!AMR"
+		if len(audioBytes) >= 6 && audioBytes[0] == 0x23 && audioBytes[1] == 0x21 && 
+			audioBytes[2] == 0x41 && audioBytes[3] == 0x4D && audioBytes[4] == 0x52 {
+			return "audio/amr"
+		}
+	}
+	
+	// Default to a generic audio type if nothing else matches
+	return "audio/mpeg" // MP3 is most widely supported
+}
+
 // ExtractMessageTextFromProto extracts text content from a WhatsApp proto message
 func ExtractMessageTextFromProto(msg *waE2E.Message) string {
 	if msg == nil {
