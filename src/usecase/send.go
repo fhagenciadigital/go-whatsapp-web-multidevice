@@ -782,6 +782,10 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 				audioMimeType, request.Audio.Filename, len(audioBytes))
 		} else {
 			audioMimeType = detectedMimeType
+			// Fix: application/ogg should be audio/ogg for WhatsApp compatibility
+			if audioMimeType == "application/ogg" {
+				audioMimeType = "audio/ogg"
+			}
 			logrus.Infof("Audio MIME type detected from content: %s (filename: %s, size: %d bytes)", 
 				audioMimeType, request.Audio.Filename, len(audioBytes))
 		}
