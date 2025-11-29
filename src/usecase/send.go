@@ -806,6 +806,18 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 			audioMimeType == "application/ogg")
 	}
 	
+	// Convert audio to WhatsApp-compatible format if it's PTT
+	if isPTT {
+		convertedAudio, err := service.convertAudioForPTT(ctx, audioBytes, audioMimeType)
+		if err != nil {
+			logrus.Warnf("Failed to convert audio for PTT, using original: %v", err)
+		} else if len(convertedAudio) > 0 {
+			audioBytes = convertedAudio
+			audioMimeType = "audio/ogg; codecs=opus"
+			logrus.Infof("Audio converted to WhatsApp PTT format: size=%d bytes", len(audioBytes))
+		}
+	}
+	
 	logrus.Infof("Uploading audio to WhatsApp: MIME=%s, size=%d bytes, PTT=%v", audioMimeType, len(audioBytes), isPTT)
 
 	// upload to WhatsApp servers
@@ -1131,6 +1143,50 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 	response.MessageID = ts.ID
 	response.Status = fmt.Sprintf("Sticker sent to %s (server timestamp: %s)", request.Phone, ts.Timestamp.String())
 	return response, nil
+}
+
+func (service serviceSend) convertAudioForPTT(ctx context.Context, audioBytes []byte, originalMimeType string) ([]byte, error) {
+	// Create temp input file
+	inputFile := filepath.Join(os.TempDir(), fmt.Sprintf("input_%d.audio", time.Now().UnixNano()))
+	outputFile := filepath.Join(os.TempDir(), fmt.Sprintf("output_%d.ogg", time.Now().UnixNano()))
+	
+	defer func() {
+		os.Remove(inputFile)
+		os.Remove(outputFile)
+	}()
+	
+	// Write input audio
+	if err := os.WriteFile(inputFile, audioBytes, 0644); err != nil {
+		return nil, fmt.Errorf("failed to write input file: %w", err)
+	}
+	
+	// Convert to WhatsApp PTT format: OGG with Opus codec, mono, 16kHz
+	cmd := exec.CommandContext(ctx, "ffmpeg",
+		"-i", inputFile,
+		"-c:a", "libopus",        // Opus codec
+		"-b:a", "16k",            // 16 kbps bitrate (WhatsApp voice note quality)
+		"-ar", "16000",           // 16kHz sample rate
+		"-ac", "1",               // Mono
+		"-f", "ogg",              // OGG container
+		"-application", "voip",   // Optimize for voice
+		"-y",                     // Overwrite output
+		outputFile,
+	)
+	
+	var stderr bytes.Buffer
+	cmd.Stderr = &stderr
+	
+	if err := cmd.Run(); err != nil {
+		return nil, fmt.Errorf("ffmpeg conversion failed: %w, stderr: %s", err, stderr.String())
+	}
+	
+	// Read converted audio
+	convertedBytes, err := os.ReadFile(outputFile)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read converted file: %w", err)
+	}
+	
+	return convertedBytes, nil
 }
 
 func (service serviceSend) uploadMedia(ctx context.Context, mediaType whatsmeow.MediaType, media []byte, recipient types.JID) (uploaded whatsmeow.UploadResponse, err error) {
