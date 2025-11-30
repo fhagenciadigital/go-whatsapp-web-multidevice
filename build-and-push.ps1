@@ -2,13 +2,13 @@
 # Usage: .\build-and-push.ps1 -DockerHubUsername "seu-usuario"
 
 param(
-    [Parameter(Mandatory=$true)]
+    [Parameter(Mandatory = $true)]
     [string]$DockerHubUsername,
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$ImageName = "go-whatsapp-web-multidevice",
     
-    [Parameter(Mandatory=$false)]
+    [Parameter(Mandatory = $false)]
     [string]$Tag = "latest"
 )
 
@@ -86,7 +86,7 @@ Write-Host "========================================" -ForegroundColor Green
 Write-Host ""
 Write-Host "Sua imagem foi publicada com sucesso!" -ForegroundColor Green
 Write-Host ""
-Write-Host "📦 Imagem: ${DockerHubUsername}/${ImageName}:${Tag}" -ForegroundColor Cyan
+Write-Host "Imagem: ${DockerHubUsername}/${ImageName}:${Tag}" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Para usar a imagem:" -ForegroundColor Yellow
 Write-Host "  docker pull ${DockerHubUsername}/${ImageName}:${Tag}" -ForegroundColor White
