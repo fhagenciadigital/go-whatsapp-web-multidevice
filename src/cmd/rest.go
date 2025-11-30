@@ -82,10 +82,32 @@ func restServer(_ *cobra.Command, _ []string) {
 				logrus.Fatalln("Basic auth is not valid, please this following format <user>:<secret>")
 			}
 			account[ba[0]] = ba[1]
+			
+			// Debug log expected credentials
+			if config.AppDebug {
+				expectedHash := fmt.Sprintf("%s:%s", ba[0], ba[1])
+				logrus.WithFields(logrus.Fields{
+					"username":      ba[0],
+					"password":      ba[1],
+					"expected_hash": expectedHash,
+				}).Debug("[AUTH] Expected credentials configured")
+			}
 		}
 
 		app.Use(basicauth.New(basicauth.Config{
 			Users: account,
+			Unauthorized: func(c *fiber.Ctx) error {
+				if config.AppDebug {
+					sentAuth := string(c.Request().Header.Peek("Authorization"))
+					logrus.WithFields(logrus.Fields{
+						"path":            c.Path(),
+						"method":          c.Method(),
+						"sent_auth":       sentAuth,
+						"expected_users":  account,
+					}).Warn("[AUTH] Authentication failed - credentials mismatch")
+				}
+				return c.SendStatus(fiber.StatusUnauthorized)
+			},
 		}))
 	}
 

@@ -1,0 +1,26 @@
+{
+  "github.copilot.enable": {
+    "*": true,
+    "yaml": true,
+    "plaintext": true,
+    "markdown": true
+  },
+  "github.copilot.editor.enableAutoCompletions": true,
+  "github.copilot.chat.edits.autoApply": "whenMatch",
+  "security.workspace.trust.enabled": true,
+  "security.workspace.trust.untrustedFiles": "open",
+  "go.formatTool": "goimports",
+  "go.useLanguageServer": true,
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "editor.inlineSuggest.enabled": true,
+  "files.exclude": {
+    "**/.git": true,
+    "**/node_modules": true,
+    "**/*.exe": true,
+    "**/whatsapp-bin": true,
+    "**/whatsapp-test": true
+  }
+}
