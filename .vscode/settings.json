@@ -22,5 +22,8 @@
     "**/*.exe": true,
     "**/whatsapp-bin": true,
     "**/whatsapp-test": true
-  }
+  },
+  "terminal.integrated.shellIntegration.enabled": true,
+  "terminal.integrated.shellIntegration.decorationsEnabled": "both",
+  "terminal.integrated.enablePersistentSessions": true
 }
