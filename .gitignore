@@ -12,3 +12,14 @@ storages
 bin
 .playwright-mcp
 .cursor/mcp.json
+
+# Build binaries
+src/go-whatsapp-web-multidevice
+src/whatsapp-bin
+src/whatsapp-test
+
+# Local data
+whatsapp-data/
+whatsapp-media/
+storages/
+
